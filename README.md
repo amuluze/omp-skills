@@ -2,7 +2,7 @@
 
 <p align="center">
   <strong>面向 OMP 的可复用技能集</strong><br/>
-  从 axiom 内置 SDD 工作流迁移、按 OMP 工具语义适配
+  覆盖需求到收口的完整工程闭环，按 OMP 工具与运行语义设计
 </p>
 
 <p align="center">
@@ -111,17 +111,17 @@ omp-skills/
 └── plan/SKILL.md
 ```
 
-## 相对 axiom 原文的适配
+## 设计取舍
 
-| axiom 原文 | OMP 适配 |
-| :--- | :--- |
-| `inspect_subagent` / `examine_subagent` / `review_subagent` | `task`（`agent: reviewer`） |
-| `<available_docs>` 注入索引 | 直接读取 `AGENTS.md`、`.docs/`、`.specs/` |
-| 系统提示词的 Git 分支规则 + 默认 commit/push | 删除；提交改为仅在用户明确要求时执行，推送单独确认 |
-| `test-authoring` / `tests/verify.md` 依赖 | 移除（绑定 Axiom 测试 runner，不适用于 OMP） |
-| 「宿主审批约定」 | OMP 审批流程 |
+| 设计点 | 做法 | 原因 |
+| :--- | :--- | :--- |
+| 子代理 | 统一走 `task`（`agent: reviewer`） | OMP 不提供专用审查工具，`task` 是唯一可组合的子代理入口 |
+| 文档输入 | 直接读取 `AGENTS.md`、`.docs/`、`.specs/` | 不依赖宿主注入的文档索引，任何仓库都能运行 |
+| 提交与推送 | 不内置分支命名、不默认提交；提交需显式授权，推送单独确认 | 写操作有外部副作用，不能由收尾流程默认触发 |
+| 权限 | 写操作走 OMP 审批流程 | 与运行时的审批语义一致 |
+| 运行时依赖 | 不收录依赖专用运行时（设计画布 / `.ax`、确定性测试 runner / `testspec`）的技能 | 缺少运行时会导致指令无法执行 |
 
-**未收录的 axiom 内置技能**：`design`（依赖 `.ax` 格式、`design_query` 与设计画布）与 `test-authoring`（依赖 `axiom.test` 协议与确定性 runner）——两者都由 Axiom 宿主提供运行时，脱离后无法执行。
+**未收录的技能**：`design`（依赖 `.ax` 格式、`design_query` 与设计画布）与 `test-authoring`（依赖 `testspec` 协议与确定性 runner）——两者都需要宿主提供运行时，脱离后无法执行。
 
 ## 约定与兼容性
 
@@ -133,7 +133,3 @@ omp-skills/
 
 发现某条规则在 OMP 下不成立，或想补充新的阶段技能：直接提 issue 或 PR。
 新增技能请保持 `SKILL.md` 单文件、目录名与 `name` 一致，并在 PR 中说明触发场景与依赖工具。
-
-## 来源
-
-技能正文源自 [axiom](https://github.com/amuluze/axiom) 的内置 SDD 技能（`BUILTIN_SKILL_BODIES_VERSION` 43），按 OMP 18.16.0 的工具体系与运行语义适配；`greeting` 来自 axiom 项目级技能示例。
